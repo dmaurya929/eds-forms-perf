@@ -1,5 +1,5 @@
 mountpoints:
   /:
-  url: https://author-p21002-e1571066.adobeaemcloud.com/bin/franklin.delivery/dmaurya929/eds-forms-perf/main
-  type: "markup"
-  suffix: ".html"
+    url: https://author-p21002-e1571066.adobeaemcloud.com/bin/franklin.delivery/dmaurya929/eds-forms-perf/main
+    type: "markup"
+    suffix: ".html"
