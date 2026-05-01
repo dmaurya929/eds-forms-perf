@@ -1,6 +1,7 @@
 mountpoints:
   /:
 <<<<<<< HEAD
+<<<<<<< HEAD
     url: "https://author-p130360-e1272151.adobeaemcloud.com/bin/franklin.delivery/adobe-rnd/aem-boilerplate-xwalk/main"
     type: "markup"
     suffix: ".html"
@@ -9,3 +10,8 @@ mountpoints:
   type: "markup"
   suffix: ".html"
 >>>>>>> dd02e9b (Create fstab.yaml)
+=======
+    url: https://author-p21002-e1571066.adobeaemcloud.com/bin/franklin.delivery/dmaurya929/eds-forms-perf/main
+    type: "markup"
+    suffix: ".html"
+>>>>>>> fb30c7d (Fix indentation in fstab.yaml)
