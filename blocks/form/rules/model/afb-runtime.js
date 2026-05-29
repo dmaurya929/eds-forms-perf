@@ -2386,7 +2386,7 @@ class Container extends Scriptable {
             });
         }
     }
-    _addChild(itemJson, index, cloneIds = false, mode = 'create') {
+    _addChild(itemJson, index, cloneIds = false, mode = 'create', clone = true) {
         let nonTransparentParent = this;
         while (nonTransparentParent != null && nonTransparentParent.isTransparent()) {
             nonTransparentParent = nonTransparentParent.parent;
@@ -2395,9 +2395,12 @@ class Container extends Scriptable {
             index = this._children.length;
         }
         const form = this.form;
+        const childJson = (clone || cloneIds)
+            ? deepClone(itemJson, cloneIds ? () => { return form.getUniqueId(); } : undefined)
+            : { ...itemJson };
         const itemTemplate = {
             index,
-            ...deepClone(itemJson, cloneIds ? () => { return form.getUniqueId(); } : undefined)
+            ...childJson
         };
         const retVal = this._createChild(itemTemplate, { parent: this, form: this.form, mode });
         itemJson.id = retVal.id;
@@ -2477,7 +2480,7 @@ class Container extends Scriptable {
                     this._initializeSiteContainer(item);
                 }
                 else if (this.isAFormField(item)) {
-                    const child = this._addChild(item, undefined, false, mode);
+                    const child = this._addChild(item, undefined, false, mode, false);
                     child._initialize(mode);
                 }
                 else {
@@ -3993,6 +3996,7 @@ class Form extends Container {
         super(n, { fieldFactory: fieldFactory, mode });
         this._ruleEngine = _ruleEngine;
         this._eventQueue = _eventQueue;
+        this._jsonModel = deepClone(this._jsonModel);
         this._logger = new Logger(logLevel);
         this._applyDefaultsInModel();
         if (mode === 'create') {
