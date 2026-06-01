@@ -1,6 +1,6 @@
 {
   "blocks/form/scripts/perf-test/eds-perf-collateral.js": {
-    "generated": "2026-06-01T05:56:30.274Z",
+    "generated": "2026-06-01T06:35:31.939Z",
     "form": "https://perf-test--eds-forms-perf--dmaurya929.aem.live/content/forms/af/deepak/eds-perf-collateral",
     "eager": [
       "apiSetF0002_300ms",
