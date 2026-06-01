@@ -537,9 +537,9 @@ function preloadFunctionScripts(customFunctionsPath, codeBasePath) {
     const filename = normalised.split('/').pop();
     const basename = filename.replace(/\.js$/, '');
     paths.push(`${prefix}${normalised}`);
-    paths.push(`${prefix}${dir}${basename}.min.js`);
+    paths.push(`${prefix}${dir}${basename}-bundle-eager.min.js`);
     try {
-      const lazyHref = `${prefix}${dir}${basename}-lazy.min.js`;
+      const lazyHref = `${prefix}${dir}${basename}-bundle-lazy.min.js`;
       const lazyUrl = lazyHref.startsWith('http')
         ? lazyHref
         : new URL(lazyHref, window.location.origin).href;
