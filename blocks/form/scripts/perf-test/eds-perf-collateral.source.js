@@ -320,10 +320,11 @@ function lazyOnF0002Changed(globals) {
 /**
  * Lazy: toggles section visibility when radio group (f0003) changes.
  * LAZY — triggered by f0003 value change event.
+ * @MANUAL_LAZY
  * @name lazyOnF0003Changed Lazy On F0003 Changed
  * @param {scope} globals
  */
-function lazyOnF0003Changed(globals) {
+export function lazyOnF0003Changed(globals) {
   const selected = globals.form.wizardStepsPanel.s1.f0003.$value;
   console.log('[perf:lazy] f0003 changed to:', selected);
   globals.functions.setProperty(globals.form.wizardStepsPanel.s1.f0004, { visible: selected === 'option1' });
@@ -1213,7 +1214,6 @@ export {
   // ── LAZY: interaction-time functions (change events only) ──
   lazyOnF0001Changed,
   lazyOnF0002Changed,
-  lazyOnF0003Changed,
   lazyOnF0006Equals,
   lazyOnF0009Changed,
   lazyOnF0010Changed,

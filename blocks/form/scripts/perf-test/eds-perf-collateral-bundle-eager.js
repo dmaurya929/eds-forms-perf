@@ -365,64 +365,10 @@ async function _loadLazy() {
 // Exported so scripts.js can warm the bundle at the 3s mark via window.hlx.loadLazyBundle
 function loadLazyBundle() { return _loadLazy(); }
 
-function initPerfF0001(...args) {
-  if (_lazyBundle) return _lazyBundle.initPerfF0001?.(...args);
-  _loadLazy();
-  console.warn('[forms] "initPerfF0001" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function initPerfF0005(...args) {
-  if (_lazyBundle) return _lazyBundle.initPerfF0005?.(...args);
-  _loadLazy();
-  console.warn('[forms] "initPerfF0005" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function initPerfF0006(...args) {
-  if (_lazyBundle) return _lazyBundle.initPerfF0006?.(...args);
-  _loadLazy();
-  console.warn('[forms] "initPerfF0006" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function initPerfF0007(...args) {
-  if (_lazyBundle) return _lazyBundle.initPerfF0007?.(...args);
-  _loadLazy();
-  console.warn('[forms] "initPerfF0007" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function lazyCascadeDropdowns(...args) {
-  if (_lazyBundle) return _lazyBundle.lazyCascadeDropdowns?.(...args);
-  _loadLazy();
-  console.warn('[forms] "lazyCascadeDropdowns" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function lazyCheckIncomeEligibility(...args) {
-  if (_lazyBundle) return _lazyBundle.lazyCheckIncomeEligibility?.(...args);
-  _loadLazy();
-  console.warn('[forms] "lazyCheckIncomeEligibility" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function lazyComputeDebtRatio(...args) {
-  if (_lazyBundle) return _lazyBundle.lazyComputeDebtRatio?.(...args);
-  _loadLazy();
-  console.warn('[forms] "lazyComputeDebtRatio" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
 function lazyComputeLoanEMI(...args) {
   if (_lazyBundle) return _lazyBundle.lazyComputeLoanEMI?.(...args);
   _loadLazy();
   console.warn('[forms] "lazyComputeLoanEMI" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function lazyComputeNetWorth(...args) {
-  if (_lazyBundle) return _lazyBundle.lazyComputeNetWorth?.(...args);
-  _loadLazy();
-  console.warn('[forms] "lazyComputeNetWorth" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function lazyFilterEligibleProducts(...args) {
-  if (_lazyBundle) return _lazyBundle.lazyFilterEligibleProducts?.(...args);
-  _loadLazy();
-  console.warn('[forms] "lazyFilterEligibleProducts" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
   return undefined;
 }
 function lazyOnF0001Changed(...args) {
@@ -467,6 +413,72 @@ function lazyOnF0011Changed(...args) {
   console.warn('[forms] "lazyOnF0011Changed" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
   return undefined;
 }
+function lazyScoreApplicationRisk(...args) {
+  if (_lazyBundle) return _lazyBundle.lazyScoreApplicationRisk?.(...args);
+  _loadLazy();
+  console.warn('[forms] "lazyScoreApplicationRisk" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
+  return undefined;
+}
+function lazyUpdateProgressIndicator(...args) {
+  if (_lazyBundle) return _lazyBundle.lazyUpdateProgressIndicator?.(...args);
+  _loadLazy();
+  console.warn('[forms] "lazyUpdateProgressIndicator" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
+  return undefined;
+}
+function initPerfF0001(...args) {
+  if (_lazyBundle) return _lazyBundle.initPerfF0001?.(...args);
+  _loadLazy();
+  console.warn('[forms] "initPerfF0001" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
+  return undefined;
+}
+function initPerfF0005(...args) {
+  if (_lazyBundle) return _lazyBundle.initPerfF0005?.(...args);
+  _loadLazy();
+  console.warn('[forms] "initPerfF0005" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
+  return undefined;
+}
+function initPerfF0006(...args) {
+  if (_lazyBundle) return _lazyBundle.initPerfF0006?.(...args);
+  _loadLazy();
+  console.warn('[forms] "initPerfF0006" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
+  return undefined;
+}
+function initPerfF0007(...args) {
+  if (_lazyBundle) return _lazyBundle.initPerfF0007?.(...args);
+  _loadLazy();
+  console.warn('[forms] "initPerfF0007" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
+  return undefined;
+}
+function lazyCascadeDropdowns(...args) {
+  if (_lazyBundle) return _lazyBundle.lazyCascadeDropdowns?.(...args);
+  _loadLazy();
+  console.warn('[forms] "lazyCascadeDropdowns" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
+  return undefined;
+}
+function lazyCheckIncomeEligibility(...args) {
+  if (_lazyBundle) return _lazyBundle.lazyCheckIncomeEligibility?.(...args);
+  _loadLazy();
+  console.warn('[forms] "lazyCheckIncomeEligibility" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
+  return undefined;
+}
+function lazyComputeDebtRatio(...args) {
+  if (_lazyBundle) return _lazyBundle.lazyComputeDebtRatio?.(...args);
+  _loadLazy();
+  console.warn('[forms] "lazyComputeDebtRatio" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
+  return undefined;
+}
+function lazyComputeNetWorth(...args) {
+  if (_lazyBundle) return _lazyBundle.lazyComputeNetWorth?.(...args);
+  _loadLazy();
+  console.warn('[forms] "lazyComputeNetWorth" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
+  return undefined;
+}
+function lazyFilterEligibleProducts(...args) {
+  if (_lazyBundle) return _lazyBundle.lazyFilterEligibleProducts?.(...args);
+  _loadLazy();
+  console.warn('[forms] "lazyFilterEligibleProducts" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
+  return undefined;
+}
 function lazyOnF0017Changed(...args) {
   if (_lazyBundle) return _lazyBundle.lazyOnF0017Changed?.(...args);
   _loadLazy();
@@ -483,18 +495,6 @@ function lazyRunAddressLookup(...args) {
   if (_lazyBundle) return _lazyBundle.lazyRunAddressLookup?.(...args);
   _loadLazy();
   console.warn('[forms] "lazyRunAddressLookup" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function lazyScoreApplicationRisk(...args) {
-  if (_lazyBundle) return _lazyBundle.lazyScoreApplicationRisk?.(...args);
-  _loadLazy();
-  console.warn('[forms] "lazyScoreApplicationRisk" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function lazyUpdateProgressIndicator(...args) {
-  if (_lazyBundle) return _lazyBundle.lazyUpdateProgressIndicator?.(...args);
-  _loadLazy();
-  console.warn('[forms] "lazyUpdateProgressIndicator" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
   return undefined;
 }
 function lazyValidateIBANField(...args) {

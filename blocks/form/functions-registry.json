@@ -1,6 +1,6 @@
 {
   "blocks/form/scripts/perf-test/eds-perf-collateral.js": {
-    "generated": "2026-06-01T06:35:31.939Z",
+    "generated": "2026-06-01T07:37:04.107Z",
     "form": "https://perf-test--eds-forms-perf--dmaurya929.aem.live/content/forms/af/deepak/eds-perf-collateral",
     "eager": [
       "apiSetF0002_300ms",
@@ -63,7 +63,18 @@
       "initPerfS8F1",
       "initPerfS8F2"
     ],
-    "lazy": [],
+    "lazy": [
+      "lazyComputeLoanEMI",
+      "lazyOnF0001Changed",
+      "lazyOnF0002Changed",
+      "lazyOnF0003Changed",
+      "lazyOnF0006Equals",
+      "lazyOnF0009Changed",
+      "lazyOnF0010Changed",
+      "lazyOnF0011Changed",
+      "lazyScoreApplicationRisk",
+      "lazyUpdateProgressIndicator"
+    ],
     "dead": [
       "async",
       "initPerfF0001",
@@ -73,21 +84,11 @@
       "lazyCascadeDropdowns",
       "lazyCheckIncomeEligibility",
       "lazyComputeDebtRatio",
-      "lazyComputeLoanEMI",
       "lazyComputeNetWorth",
       "lazyFilterEligibleProducts",
-      "lazyOnF0001Changed",
-      "lazyOnF0002Changed",
-      "lazyOnF0003Changed",
-      "lazyOnF0006Equals",
-      "lazyOnF0009Changed",
-      "lazyOnF0010Changed",
-      "lazyOnF0011Changed",
       "lazyOnF0017Changed",
       "lazyOnF0018Changed",
       "lazyRunAddressLookup",
-      "lazyScoreApplicationRisk",
-      "lazyUpdateProgressIndicator",
       "lazyValidateIBANField",
       "lazyValidatePhoneFormat",
       "showPerfF0003",
