@@ -1,14 +1,6 @@
 import { createOptimizedPicture, loadCSS } from '../../scripts/aem.js';
-import { getSubmitBaseUrl, defaultErrorMessages, DEFAULT_THANK_YOU_MESSAGE, LOG_LEVEL, SUBMISSION_SERVICE, emailPattern } from './constant.js';
+import { defaultErrorMessages, getSubmitBaseUrl, DEFAULT_THANK_YOU_MESSAGE, LOG_LEVEL, SUBMISSION_SERVICE, emailPattern } from './constant.js';
 import { registerFunctions as registerFunctions$1 } from './rules/model/afb-runtime.min.js';
-
-function externalize(url) {
-  const submitBaseUrl = getSubmitBaseUrl();
-  if (submitBaseUrl) {
-    return `${submitBaseUrl}${url}`;
-  }
-  return url;
-}
 
 const headings = Array.from({ length: 6 }, (_, i) => `<h${i + 1}>`).join('');
 const allowedTags = `${headings}<a><b><p><i><em><strong><ul><li><ol><br><hr><u><sup><sub><s>`;
@@ -377,6 +369,13 @@ function createDropdownUsingEnum(fd, wrapper) {
   if (ph && optionSelected === false) {
     ph.setAttribute('selected', '');
   }
+}
+function externalize(url) {
+  const submitBaseUrl = getSubmitBaseUrl();
+  if (submitBaseUrl) {
+    return `${submitBaseUrl}${url}`;
+  }
+  return url;
 }
 async function fetchData(id, search = '') {
   try {
