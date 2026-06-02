@@ -200,7 +200,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "form"
+        "default": "form"
       },
       {
         "component": "container",
@@ -231,7 +231,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "button"
+        "default": "button"
       },
       {
         "component": "tab",
@@ -352,7 +352,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "checkbox-group"
+        "default": "checkbox-group"
       },
       {
         "component": "tab",
@@ -597,7 +597,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "checkbox"
+        "default": "checkbox"
       },
       {
         "component": "tab",
@@ -819,7 +819,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "date-input"
+        "default": "date-input"
       },
       {
         "component": "tab",
@@ -1068,7 +1068,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "drop-down"
+        "default": "drop-down"
       },
       {
         "component": "tab",
@@ -1304,7 +1304,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "email"
+        "default": "email"
       },
       {
         "component": "tab",
@@ -1528,7 +1528,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "file-input"
+        "default": "file-input"
       },
       {
         "component": "tab",
@@ -1735,7 +1735,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "panel"
+        "default": "panel"
       },
       {
         "component": "tab",
@@ -1936,7 +1936,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "image"
+        "default": "image"
       },
       {
         "component": "text",
@@ -2266,7 +2266,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "number-input"
+        "default": "number-input"
       },
       {
         "component": "tab",
@@ -2525,7 +2525,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "panel"
+        "default": "panel"
       },
       {
         "component": "tab",
@@ -2802,7 +2802,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "radio-group"
+        "default": "radio-group"
       },
       {
         "component": "tab",
@@ -3046,7 +3046,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "captcha"
+        "default": "captcha"
       },
       {
         "component": "text",
@@ -3063,7 +3063,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "button"
+        "default": "button"
       },
       {
         "component": "tab",
@@ -3184,7 +3184,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "button"
+        "default": "button"
       },
       {
         "component": "tab",
@@ -3305,7 +3305,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "text-input"
+        "default": "text-input"
       },
       {
         "component": "tab",
@@ -3515,7 +3515,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "text-input"
+        "default": "text-input"
       },
       {
         "component": "tab",
@@ -3745,7 +3745,7 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "plain-text"
+        "default": "plain-text"
       },
       {
         "component": "text",
@@ -3832,12 +3832,12 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "panel"
+        "default": "panel"
       },
       {
         "component": "hidden",
         "name": "fd:viewType",
-        "value": "accordion"
+        "default": "accordion"
       },
       {
         "component": "tab",
@@ -3982,12 +3982,12 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "panel"
+        "default": "panel"
       },
       {
         "component": "hidden",
         "name": "fd:viewType",
-        "value": "modal"
+        "default": "modal"
       },
       {
         "component": "tab",
@@ -4132,12 +4132,12 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "text-input"
+        "default": "text-input"
       },
       {
         "component": "hidden",
         "name": "fd:viewType",
-        "value": "password"
+        "default": "password"
       },
       {
         "component": "tab",
@@ -4349,12 +4349,12 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "number-input"
+        "default": "number-input"
       },
       {
         "component": "hidden",
         "name": "fd:viewType",
-        "value": "range"
+        "default": "range"
       },
       {
         "component": "tab",
@@ -4564,12 +4564,12 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "number-input"
+        "default": "number-input"
       },
       {
         "component": "hidden",
         "name": "fd:viewType",
-        "value": "rating"
+        "default": "rating"
       },
       {
         "component": "tab",
@@ -4767,12 +4767,12 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "panel"
+        "default": "panel"
       },
       {
         "component": "hidden",
         "name": "fd:viewType",
-        "value": "tnc"
+        "default": "tnc"
       },
       {
         "component": "tab",
@@ -4923,12 +4923,12 @@
       {
         "component": "hidden",
         "name": "fieldType",
-        "value": "panel"
+        "default": "panel"
       },
       {
         "component": "hidden",
         "name": "fd:viewType",
-        "value": "wizard"
+        "default": "wizard"
       },
       {
         "component": "tab",
