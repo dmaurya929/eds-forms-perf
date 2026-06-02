@@ -293,6 +293,7 @@ function eagerInitABTestVariant(globals) {
 /**
  * Lazy: recomputes loan amortization when principal (f0001) changes.
  * LAZY — triggered by f0001 value change event.
+ * @MANUAL_EAGER
  * @name lazyOnF0001Changed Lazy On F0001 Changed
  * @param {scope} globals
  */
@@ -306,6 +307,7 @@ function lazyOnF0001Changed(globals) {
 /**
  * Lazy: cascades dropdown options when loan type (f0002) changes.
  * LAZY — triggered by f0002 value change event.
+ * @MANUAL_EAGER
  * @name lazyOnF0002Changed Lazy On F0002 Changed
  * @param {scope} globals
  */
@@ -320,7 +322,7 @@ function lazyOnF0002Changed(globals) {
 /**
  * Lazy: toggles section visibility when radio group (f0003) changes.
  * LAZY — triggered by f0003 value change event.
- * @MANUAL_LAZY
+ * @MANUAL_EAGER
  * @name lazyOnF0003Changed Lazy On F0003 Changed
  * @param {scope} globals
  */
@@ -334,6 +336,7 @@ export function lazyOnF0003Changed(globals) {
 /**
  * Lazy: validates text input for special keyword match using Levenshtein distance.
  * LAZY — triggered when f0006 equals "adf".
+ * @MANUAL_EAGER
  * @name lazyOnF0006Equals Lazy On F0006 Equals
  * @param {scope} globals
  */
@@ -347,6 +350,7 @@ function lazyOnF0006Equals(globals) {
 /**
  * Lazy: recomputes EMI when interest rate field (f0009) changes.
  * LAZY — triggered by f0009 value change event.
+ * @MANUAL_EAGER
  * @name lazyOnF0009Changed Lazy On F0009 Changed
  * @param {scope} globals
  */
@@ -360,6 +364,7 @@ function lazyOnF0009Changed(globals) {
 /**
  * Lazy: loads sub-options based on dropdown (f0010) selection.
  * LAZY — triggered by f0010 value change event.
+ * @MANUAL_EAGER
  * @name lazyOnF0010Changed Lazy On F0010 Changed
  * @param {scope} globals
  */
@@ -401,6 +406,7 @@ function lazyOnF0018Changed(globals) {
 /**
  * Lazy: full EMI calculation triggered by any principal/rate/term change.
  * LAZY — called from multiple change rules.
+ * @MANUAL_EAGER
  * @name lazyComputeLoanEMI Lazy Compute Loan EMI
  * @param {scope} globals
  */
@@ -458,6 +464,7 @@ function lazyComputeDebtRatio(globals) {
 /**
  * Lazy: scores full application risk on change.
  * LAZY — triggered by any risk-related field change.
+ * @MANUAL_EAGER
  * @name lazyScoreApplicationRisk Lazy Score Application Risk
  * @param {scope} globals
  */
@@ -473,6 +480,7 @@ function lazyScoreApplicationRisk(globals) {
 /**
  * Lazy: updates a progress indicator based on filled fields count.
  * LAZY — triggered by any field change.
+ * @MANUAL_EAGER
  * @name lazyUpdateProgressIndicator Lazy Update Progress Indicator
  * @param {scope} globals
  */
@@ -564,6 +572,7 @@ function lazyFilterEligibleProducts(globals) {
 /**
  * Lazy: toggles conditional fields when f0011 radio group changes.
  * LAZY — triggered by f0011 change.
+ * @MANUAL_EAGER
  * @name lazyOnF0011Changed Lazy On F0011 Changed
  * @param {scope} globals
  */

@@ -1,6 +1,6 @@
 {
   "blocks/form/scripts/perf-test/eds-perf-collateral.js": {
-    "generated": "2026-06-01T07:37:04.107Z",
+    "generated": "2026-06-02T19:36:10.132Z",
     "form": "https://perf-test--eds-forms-perf--dmaurya929.aem.live/content/forms/af/deepak/eds-perf-collateral",
     "eager": [
       "apiSetF0002_300ms",
@@ -61,9 +61,7 @@
       "initPerfS7F2",
       "initPerfS7F3",
       "initPerfS8F1",
-      "initPerfS8F2"
-    ],
-    "lazy": [
+      "initPerfS8F2",
       "lazyComputeLoanEMI",
       "lazyOnF0001Changed",
       "lazyOnF0002Changed",
@@ -75,6 +73,7 @@
       "lazyScoreApplicationRisk",
       "lazyUpdateProgressIndicator"
     ],
+    "lazy": [],
     "dead": [
       "async",
       "initPerfF0001",

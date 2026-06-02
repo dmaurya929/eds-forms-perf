@@ -22,6 +22,13 @@ function _hashString(str) {
   }
   return h.toString(16);
 }
+function _calculateAmortization(principal, annualRate, months) {
+  const r = annualRate / 12 / 100;
+  if (r === 0) return { emi: principal / months, totalInterest: 0, totalPayment: principal };
+  const emi = (principal * r * Math.pow(1 + r, months)) / (Math.pow(1 + r, months) - 1);
+  const totalPayment = emi * months;
+  return { emi: Math.round(emi * 100) / 100, totalInterest: Math.round((totalPayment - principal) * 100) / 100, totalPayment: Math.round(totalPayment * 100) / 100 };
+}
 function _scoreCreditRisk(creditScore, annualIncome, debtToIncomeRatio) {
   let baseScore = 0;
   if (creditScore >= 750) baseScore += 40;
@@ -55,6 +62,25 @@ function _percentile(sortedArr, p) {
   const idx = (p / 100) * (sortedArr.length - 1);
   const lo = Math.floor(idx); const hi = Math.ceil(idx);
   return sortedArr[lo] + (sortedArr[hi] - sortedArr[lo]) * (idx - lo);
+}
+function _tokenize(text) {
+  return String(text)
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((t) => t.length > 2);
+}
+function _levenshtein(a, b) {
+  const m = a.length; const n = b.length;
+  const dp = Array.from({ length: m + 1 }, (_, i) => Array.from({ length: n + 1 }, (__, j) => (i === 0 ? j : j === 0 ? i : 0)));
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1]
+        ? dp[i - 1][j - 1]
+        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+  return dp[m][n];
 }
 function _deepMerge(target, source) {
   const out = Object.assign({}, target);
@@ -128,6 +154,78 @@ function eagerInitABTestVariant(globals) {
   const variant = primes[Date.now() % primes.length] % 2 === 0 ? 'variant-A' : 'variant-B';
   console.log('[perf:eager] AB test variant:', variant);
   globals.functions.setProperty(globals.form.wizardStepsPanel.s1.f0004, { visible: variant === 'variant-A' });
+}
+function lazyOnF0001Changed(globals) {
+  const principal = globals.form.wizardStepsPanel.s1.f0001.$value || 0;
+  const result = _calculateAmortization(principal, 8.5, 240);
+  console.log('[perf:lazy] f0001 changed → EMI:', result.emi);
+  globals.functions.setProperty(globals.form.wizardStepsPanel.s1.f0009, { value: result.emi });
+}
+function lazyOnF0002Changed(globals) {
+  const loanType = globals.form.wizardStepsPanel.s1.f0002.$value;
+  const hash = _hashString(String(loanType));
+  console.log('[perf:lazy] f0002 changed to:', loanType, 'hash:', hash);
+  const visible = parseInt(hash.slice(0, 2), 16) % 2 === 0;
+  globals.functions.setProperty(globals.form.wizardStepsPanel.s1.f0003, { visible });
+}
+function lazyOnF0003Changed(globals) {
+  const selected = globals.form.wizardStepsPanel.s1.f0003.$value;
+  console.log('[perf:lazy] f0003 changed to:', selected);
+  globals.functions.setProperty(globals.form.wizardStepsPanel.s1.f0004, { visible: selected === 'option1' });
+  globals.functions.setProperty(globals.form.wizardStepsPanel.s1.f0005, { visible: selected === 'option2' });
+}
+function lazyOnF0006Equals(globals) {
+  const val = globals.form.wizardStepsPanel.s1.f0006.$value || '';
+  const dist = _levenshtein(val.toLowerCase(), 'adobe');
+  console.log('[perf:lazy] f0006 equals trigger — levenshtein to "adobe":', dist);
+  globals.functions.setProperty(globals.form.wizardStepsPanel.s1.f0007, { value: dist === 0 ? 'Match!' : 'Distance: ' + dist });
+}
+function lazyOnF0009Changed(globals) {
+  const rate = globals.form.wizardStepsPanel.s1.f0009.$value || 8.5;
+  const result = _calculateAmortization(500000, rate, 180);
+  console.log('[perf:lazy] f0009 changed → EMI at', rate, '%:', result.emi);
+  globals.functions.setProperty(globals.form.wizardStepsPanel.s1.f0001, { value: result.emi });
+}
+function lazyOnF0010Changed(globals) {
+  const selection = globals.form.wizardStepsPanel.s1.f0010.$value;
+  const tokens = _tokenize(String(selection) + ' option cascade filter');
+  console.log('[perf:lazy] f0010 changed, tokens:', tokens);
+  globals.functions.setProperty(globals.form.wizardStepsPanel.s1.f0011, { visible: tokens.length > 2 });
+}
+function lazyComputeLoanEMI(globals) {
+  const principal = globals.form.wizardStepsPanel.s1.f0001.$value || 100000;
+  const rate = globals.form.wizardStepsPanel.s1.f0009.$value || 8.5;
+  const result = _calculateAmortization(principal, rate, 240);
+  console.log('[perf:lazy] EMI compute — principal:', principal, 'rate:', rate, 'EMI:', result.emi);
+  globals.functions.setProperty(globals.form.wizardStepsPanel.s1.f0008, { value: 'EMI: ' + result.emi });
+}
+function lazyScoreApplicationRisk(globals) {
+  const creditScore = globals.form.wizardStepsPanel.s1.f0001.$value || 650;
+  const income = globals.form.wizardStepsPanel.s1.p1_l2.f0017.$value || 50000;
+  const debtRatio = (globals.form.wizardStepsPanel.s1.f0009.$value || 0) / Math.max(income, 1);
+  const riskScore = _scoreCreditRisk(creditScore, income, debtRatio);
+  console.log('[perf:lazy] application risk score:', riskScore);
+  globals.functions.setProperty(globals.form.wizardStepsPanel.s1.f0002, { visible: riskScore < 50 });
+}
+function lazyUpdateProgressIndicator(globals) {
+  const fields = [
+    globals.form.wizardStepsPanel.s1.f0001.$value,
+    globals.form.wizardStepsPanel.s1.f0006.$value,
+    globals.form.wizardStepsPanel.s1.f0007.$value,
+    globals.form.wizardStepsPanel.s1.f0008.$value,
+  ];
+  const filled = fields.filter((v) => v !== null && v !== undefined && v !== '').length;
+  const pct = Math.round((filled / fields.length) * 100);
+  console.log('[perf:lazy] progress:', pct, '%');
+  globals.functions.setProperty(globals.form.wizardStepsPanel.s1.f0009, { value: pct });
+}
+function lazyOnF0011Changed(globals) {
+  const val = globals.form.wizardStepsPanel.s1.f0011.$value;
+  const fib = _fibonacci(20);
+  const toggle = (parseInt(_hashString(String(val)), 16) % fib) % 2 === 0;
+  console.log('[perf:lazy] f0011 changed:', val, 'toggle:', toggle);
+  globals.functions.setProperty(globals.form.wizardStepsPanel.s1.p1_l2.f0013, { visible: toggle });
+  globals.functions.setProperty(globals.form.wizardStepsPanel.s1.p1_l2.f0020, { visible: !toggle });
 }
 function initPerfS1F1(globals) {
   console.log('[perf] s1 init F1 — setting f0001');
@@ -365,66 +463,6 @@ async function _loadLazy() {
 // Exported so scripts.js can warm the bundle at the 3s mark via window.hlx.loadLazyBundle
 function loadLazyBundle() { return _loadLazy(); }
 
-function lazyComputeLoanEMI(...args) {
-  if (_lazyBundle) return _lazyBundle.lazyComputeLoanEMI?.(...args);
-  _loadLazy();
-  console.warn('[forms] "lazyComputeLoanEMI" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function lazyOnF0001Changed(...args) {
-  if (_lazyBundle) return _lazyBundle.lazyOnF0001Changed?.(...args);
-  _loadLazy();
-  console.warn('[forms] "lazyOnF0001Changed" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function lazyOnF0002Changed(...args) {
-  if (_lazyBundle) return _lazyBundle.lazyOnF0002Changed?.(...args);
-  _loadLazy();
-  console.warn('[forms] "lazyOnF0002Changed" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function lazyOnF0003Changed(...args) {
-  if (_lazyBundle) return _lazyBundle.lazyOnF0003Changed?.(...args);
-  _loadLazy();
-  console.warn('[forms] "lazyOnF0003Changed" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function lazyOnF0006Equals(...args) {
-  if (_lazyBundle) return _lazyBundle.lazyOnF0006Equals?.(...args);
-  _loadLazy();
-  console.warn('[forms] "lazyOnF0006Equals" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function lazyOnF0009Changed(...args) {
-  if (_lazyBundle) return _lazyBundle.lazyOnF0009Changed?.(...args);
-  _loadLazy();
-  console.warn('[forms] "lazyOnF0009Changed" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function lazyOnF0010Changed(...args) {
-  if (_lazyBundle) return _lazyBundle.lazyOnF0010Changed?.(...args);
-  _loadLazy();
-  console.warn('[forms] "lazyOnF0010Changed" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function lazyOnF0011Changed(...args) {
-  if (_lazyBundle) return _lazyBundle.lazyOnF0011Changed?.(...args);
-  _loadLazy();
-  console.warn('[forms] "lazyOnF0011Changed" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function lazyScoreApplicationRisk(...args) {
-  if (_lazyBundle) return _lazyBundle.lazyScoreApplicationRisk?.(...args);
-  _loadLazy();
-  console.warn('[forms] "lazyScoreApplicationRisk" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
-function lazyUpdateProgressIndicator(...args) {
-  if (_lazyBundle) return _lazyBundle.lazyUpdateProgressIndicator?.(...args);
-  _loadLazy();
-  console.warn('[forms] "lazyUpdateProgressIndicator" called before lazy bundle loaded — add @MANUAL_EAGER if needed');
-  return undefined;
-}
 function initPerfF0001(...args) {
   if (_lazyBundle) return _lazyBundle.initPerfF0001?.(...args);
   _loadLazy();
