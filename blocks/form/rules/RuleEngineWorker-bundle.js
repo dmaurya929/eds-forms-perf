@@ -1,6 +1,6 @@
 import { registerFunctions, createFormInstance } from './model/afb-runtime.min.js';
+import { fetchData } from '../util.js';
 import { getLogLevelFromURL } from '../constant.js';
-import { externalize } from './functions.min.js';
 
 async function registerCustomFunctions(customFunctionsPath, codeBasePath) {
   try {
@@ -44,27 +44,6 @@ async function registerCustomFunctions(customFunctionsPath, codeBasePath) {
     }
   } catch (e) {
     console.log(`error occured while registering custom functions in web worker ${e.message}`);
-  }
-}
-
-Array.from({ length: 6 }, (_, i) => `<h${i + 1}>`).join('');
-Object.entries({
-  'password|tel|email|text': [['maxLength', 'maxlength'], ['minLength', 'minlength'], 'pattern'],
-  'number|range|date': [['maximum', 'Max'], ['minimum', 'Min'], 'step'],
-  file: ['accept', 'Multiple'],
-  panel: [['maxOccur', 'data-max'], ['minOccur', 'data-min']],
-}).flatMap(([types, constraintDef]) => types.split('|')
-  .map((type) => [type, constraintDef.map((cd) => (Array.isArray(cd) ? cd : [cd, cd]))]));
-async function fetchData(id, search = '') {
-  try {
-    const url = externalize(`/adobe/forms/af/data/${id}${search}`);
-    const response = await fetch(url);
-    const json = await response.json();
-    const { data: prefillData } = json;
-    const { data: { afData: { afBoundData: { data = {} } = {} } = {} } = {} } = json;
-    return Object.keys(data).length > 0 ? data : (prefillData || json);
-  } catch (ex) {
-    return null;
   }
 }
 

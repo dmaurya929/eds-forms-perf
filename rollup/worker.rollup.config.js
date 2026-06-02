@@ -1,24 +1,14 @@
 import cleanup from 'rollup-plugin-cleanup';
 
-// Keep afb-runtime and constant.js external — HTTP-cached via head.html preloads.
-// Keep functions.js/functions.min.js external — HTTP cache warmed by the main thread
-// before the worker is created (registerCustomFunctions loads functions.min.js first).
-// This mirrors the approach in custom-functions.rollup.config.js.
-const isFunctionsFile = (id) => {
-  const base = id.split('/').pop();
-  return base === 'functions.js' || base === 'functions.min.js';
-};
-
+// Keep these external — all HTTP-cached via head.html preloads before the worker starts.
 const external = (id) => id.includes('afb-runtime')
   || id.endsWith('constant.js')
-  || isFunctionsFile(id);
+  || id.endsWith('util.js');
 
-// Ensure all runtime references use .min.js in the bundle output, regardless of
-// which mode the source files are in. Covers:
-// - afb-runtime.js → afb-runtime.min.js (external, may be dev-mode in source)
-// - functions.js → functions.min.js (util.js imports functions.js; the main
-//   thread warms the HTTP cache with functions.min.js before the worker starts,
-//   so the worker must request the same URL to get a cache hit)
+// Ensure all runtime references use .min.js in the bundle output regardless of
+// which mode swap-shims last wrote to the source files. Covers:
+// - afb-runtime.js → afb-runtime.min.js
+// - functions.js → functions.min.js (fallback path in onmessage handler)
 const remapToMin = {
   name: 'remap-to-min',
   renderChunk(code) {
