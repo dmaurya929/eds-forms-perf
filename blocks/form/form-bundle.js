@@ -1,6 +1,6 @@
 import { createOptimizedPicture, loadCSS } from '../../scripts/aem.js';
 import { defaultErrorMessages, getSubmitBaseUrl, DEFAULT_THANK_YOU_MESSAGE, LOG_LEVEL, SUBMISSION_SERVICE, emailPattern } from './constant.js';
-import { registerFunctions as registerFunctions$1 } from './rules/model/afb-runtime.min.js';
+import registerCustomFunctions, { preloadFunctionScripts } from './rules/functionRegistration.js';
 
 const headings = Array.from({ length: 6 }, (_, i) => `<h${i + 1}>`).join('');
 const allowedTags = `${headings}<a><b><p><i><em><strong><ul><li><ol><br><hr><u><sup><sub><s>`;
@@ -516,98 +516,6 @@ async function handleSubmit(e, form, captcha) {
       firstInvalidEl.focus();
       firstInvalidEl.scrollIntoView({ behavior: 'smooth' });
     }
-  }
-}
-
-const preloadedUrls = new Set();
-function preloadFunctionScripts(customFunctionsPath, codeBasePath) {
-  if (typeof document === 'undefined' || !document?.head) return;
-  const base = (typeof codeBasePath === 'string' && codeBasePath !== '')
-    ? codeBasePath.replace(/\/$/, '')
-    : '';
-  const prefix = base ? `${base}/` : '/';
-  const paths = [
-    `${prefix}blocks/form/rules/functions.min.js`,
-    `${prefix}blocks/form/functions.min.js`,
-  ];
-  if (typeof customFunctionsPath === 'string' && customFunctionsPath.trim() !== '') {
-    const normalised = customFunctionsPath.replace(/^\//, '').trim();
-    const dir = normalised.replace(/[^/]+$/, '');
-    const filename = normalised.split('/').pop();
-    const basename = filename.replace(/\.js$/, '');
-    paths.push(`${prefix}${normalised}`);
-    paths.push(`${prefix}${dir}${basename}-bundle-eager.min.js`);
-    try {
-      const lazyHref = `${prefix}${dir}${basename}-bundle-lazy.min.js`;
-      const lazyUrl = lazyHref.startsWith('http')
-        ? lazyHref
-        : new URL(lazyHref, window.location.origin).href;
-      if (!preloadedUrls.has(lazyUrl)) {
-        preloadedUrls.add(lazyUrl);
-        const lazyLink = document.createElement('link');
-        lazyLink.rel = 'prefetch';
-        lazyLink.as = 'script';
-        lazyLink.href = lazyUrl;
-        document.head.appendChild(lazyLink);
-      }
-    } catch {
-    }
-  }
-  paths.forEach((href) => {
-    try {
-      const url = href.startsWith('http') ? href : new URL(href, window.location.origin).href;
-      if (preloadedUrls.has(url)) return;
-      preloadedUrls.add(url);
-      const link = document.createElement('link');
-      link.rel = 'modulepreload';
-      link.href = url;
-      document.head.appendChild(link);
-    } catch {
-    }
-  });
-}
-async function registerCustomFunctions(customFunctionsPath, codeBasePath) {
-  try {
-    function registerFunctionsInRuntime(module) {
-      const keys = Object.keys(module);
-      for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        const funcDef = module[key];
-        if (typeof funcDef === 'function') {
-          const functions = [];
-          functions[key] = funcDef;
-          registerFunctions$1(functions);
-        }
-      }
-    }
-    const base = (codeBasePath != null && codeBasePath !== undefined)
-      ? codeBasePath.replace(/\/$/, '')
-      : '';
-    const ootbFunctionsPath = base + '/blocks/form/rules/functions.min.js';
-    const imports = [import( ootbFunctionsPath)];
-    if (codeBasePath != null && codeBasePath !== undefined
-      && customFunctionsPath != null && customFunctionsPath !== undefined) {
-      imports.push(import(`${codeBasePath}${customFunctionsPath}`));
-    }
-    const results = await Promise.allSettled(imports);
-    results.forEach((result) => {
-      if (result.status === 'fulfilled') {
-        registerFunctionsInRuntime(result.value);
-      } else {
-        console.warn(`failed to load functions module: ${result.reason?.message}`);
-      }
-    });
-    if (typeof window !== 'undefined') {
-      const eagerModule = results.find(
-        (r) => r.status === 'fulfilled' && typeof r.value?.loadLazyBundle === 'function',
-      );
-      if (eagerModule) {
-        window.hlx = window.hlx || {};
-        window.hlx.loadLazyBundle = eagerModule.value.loadLazyBundle;
-      }
-    }
-  } catch (e) {
-    console.log(`error occured while registering custom functions in web worker ${e.message}`);
   }
 }
 

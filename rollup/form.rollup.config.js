@@ -40,20 +40,11 @@ const remapToMin = {
   },
 };
 
-// Rewrite the worker entry URL to the pre-bundled worker in the prod output.
-// Template-literal paths (e.g. `${codeBasePath}/.../RuleEngineWorker.js`) are
-// deliberately skipped by swap-shims, so this renderChunk pass is the only hook.
-const remapWorkerBundle = {
-  name: 'remap-worker-bundle',
-  renderChunk(code) {
-    return code.replace(/RuleEngineWorker\.js/g, 'RuleEngineWorker-bundle.js');
-  },
-};
-
 const external = (id) => id.includes('scripts/aem.js')
   || id.includes('afb-runtime')
   || id.includes('RuleEngineWorker')
-  || id.endsWith('constant.js');
+  || id.endsWith('constant.js')
+  || id.endsWith('functionRegistration.js');
 
 export default {
   input: 'blocks/form/form.source.js',
@@ -71,7 +62,7 @@ export default {
       file: 'blocks/form/form-bundle.min.js',
       format: 'es',
       inlineDynamicImports: true,
-      plugins: [remapToMin, remapWorkerBundle, terser()],
+      plugins: [remapToMin, terser()],
     },
   ],
 };
