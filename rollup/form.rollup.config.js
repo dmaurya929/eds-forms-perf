@@ -43,6 +43,7 @@ const remapToMin = {
 const external = (id) => id.includes('scripts/aem.js')
   || id.includes('afb-runtime')
   || id.includes('RuleEngineWorker')
+  || id.endsWith('util.js')
   || id.endsWith('constant.js')
   || id.endsWith('functionRegistration.js');
 
