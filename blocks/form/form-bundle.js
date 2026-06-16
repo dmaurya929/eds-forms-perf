@@ -289,10 +289,6 @@ async function fieldChanged(payload, form, generateFormRendition) {
           }
           break;
         }
-        if (currentValue === true && fieldType === 'panel' && form._preRenderPromises?.has(id)) {
-          form._preRenderPromises.get(id).then(() => { fieldWrapper.dataset.visible = 'true'; });
-          break;
-        }
         fieldWrapper.dataset.visible = currentValue;
         if (fieldType === 'panel' && fieldWrapper.querySelector('dialog')) {
           const dialog = fieldWrapper.querySelector('dialog');
@@ -558,34 +554,6 @@ async function loadRuleEngine(formDef, htmlForm, captcha, genFormRendition, data
       transferRepeatableDOM(htmlForm, null, htmlForm, formId, panelEl);
     });
   };
-  if (htmlForm._lazyPanels?.size) {
-    htmlForm._preRenderPromises = new Map();
-    htmlForm._lazyPanels.forEach(({ fieldData, formId, getItems }, id) => {
-      const liveState = getLivePanelState(id, htmlForm);
-      if (liveState && liveState.visible === true) {
-        const panelEl = htmlForm.querySelector(`#${id}`);
-        if (panelEl) {
-          htmlForm._lazyPanels.delete(id);
-          const promise = genFormRendition(
-            liveState,
-            panelEl,
-            formId,
-            getItems,
-            { lazyComponents: htmlForm._lazyComponents },
-          );
-          htmlForm._preRenderPromises.set(id, promise);
-          promise.then(() => {
-            htmlForm._preRenderPromises?.delete(id);
-            transferRepeatableDOM(htmlForm, null, htmlForm, formId, panelEl);
-          });
-          if (fieldData.qualifiedName) {
-            renderPromises[fieldData.qualifiedName] = promise;
-            promise.then(() => { delete renderPromises[fieldData.qualifiedName]; });
-          }
-        }
-      }
-    });
-  }
   if (htmlForm._pendingLazyRenders?.size) {
     htmlForm._pendingLazyRenders.forEach((id) => {
       if (!htmlForm._lazyPanels?.has(id)) return;

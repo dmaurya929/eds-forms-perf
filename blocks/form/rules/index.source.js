@@ -222,11 +222,7 @@ export async function fieldChanged(payload, form, generateFormRendition) {
           }
           break;
         }
-        // Lazy panel already pre-rendered in loadRuleEngine — wait before showing (prevents CLS).
-        if (currentValue === true && fieldType === 'panel' && form._preRenderPromises?.has(id)) {
-          form._preRenderPromises.get(id).then(() => { fieldWrapper.dataset.visible = 'true'; });
-          break;
-        }
+
         fieldWrapper.dataset.visible = currentValue;
         if (fieldType === 'panel' && fieldWrapper.querySelector('dialog')) {
           const dialog = fieldWrapper.querySelector('dialog');
@@ -525,39 +521,6 @@ export async function loadRuleEngine(formDef, htmlForm, captcha, genFormRenditio
       transferRepeatableDOM(htmlForm, null, htmlForm, formId, panelEl);
     });
   };
-  // Background pre-render: fill in remaining step-layout panels after the rule engine
-  // restores state. This runs after the worker round-trip (natural async gap), giving the
-  // browser an opportunity to paint the initial step before this work begins. On-demand
-  // rendering via _renderLazyPanel handles the race where the user navigates before this
-  // completes.
-  if (htmlForm._lazyPanels?.size) {
-    htmlForm._preRenderPromises = new Map();
-    htmlForm._lazyPanels.forEach(({ fieldData, formId, getItems }, id) => {
-      const liveState = getLivePanelState(id, htmlForm);
-      if (liveState && liveState.visible === true) {
-        const panelEl = htmlForm.querySelector(`#${id}`);
-        if (panelEl) {
-          htmlForm._lazyPanels.delete(id);
-          const promise = genFormRendition(
-            liveState,
-            panelEl,
-            formId,
-            getItems,
-            { lazyComponents: htmlForm._lazyComponents },
-          );
-          htmlForm._preRenderPromises.set(id, promise);
-          promise.then(() => {
-            htmlForm._preRenderPromises?.delete(id);
-            transferRepeatableDOM(htmlForm, null, htmlForm, formId, panelEl);
-          });
-          if (fieldData.qualifiedName) {
-            renderPromises[fieldData.qualifiedName] = promise;
-            promise.then(() => { delete renderPromises[fieldData.qualifiedName]; });
-          }
-        }
-      }
-    });
-  }
   // Flush panels queued by case 'visible' before the model was ready.
   if (htmlForm._pendingLazyRenders?.size) {
     htmlForm._pendingLazyRenders.forEach((id) => {
