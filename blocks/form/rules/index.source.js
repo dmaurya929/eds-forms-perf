@@ -19,6 +19,7 @@
  * the terms of the Adobe license agreement accompanying it.
  ************************************************************************ */
 import { submitSuccess, submitFailure } from '../submit.js';
+import transferRepeatableDOM from '../components/repeat/repeat.js';
 import {
   createHelpText,
   createLabel,
@@ -91,7 +92,10 @@ function handleActiveChild(id, form, generateFormRendition) {
         renderPromises[fieldData.qualifiedName] = promise;
         promise.then(() => { delete renderPromises[fieldData.qualifiedName]; });
       }
-      promise.then(() => handleActiveChild(id, form, null));
+      promise.then(() => {
+        transferRepeatableDOM(form, null, form, formId, panelEl);
+        handleActiveChild(id, form, null);
+      });
     }
   }
   /* eslint-enable no-underscore-dangle */
@@ -101,7 +105,7 @@ export async function fieldChanged(payload, form, generateFormRendition) {
   const { changes, field: fieldModel } = payload;
   const {
     id, name, fieldType, ':type': componentType, readOnly, type, displayValue, displayFormat, displayValueExpression,
-    activeChild, qualifiedName,
+    qualifiedName,
   } = fieldModel;
   const field = form.querySelector(`#${id}`);
   if (!field) {
@@ -254,6 +258,9 @@ export async function fieldChanged(payload, form, generateFormRendition) {
               renderPromises[fieldData.qualifiedName] = promise;
               promise.then(() => { delete renderPromises[fieldData.qualifiedName]; });
             }
+            promise.then(() => {
+              transferRepeatableDOM(form, null, form, storedFormId, field);
+            });
           }
         }
         /* eslint-enable no-underscore-dangle */
@@ -332,7 +339,7 @@ export async function fieldChanged(payload, form, generateFormRendition) {
           renderPromises[currentValue?.qualifiedName] = promise;
         }
         break;
-      case 'activeChild': handleActiveChild(activeChild, form, generateFormRendition);
+      case 'activeChild': handleActiveChild(currentValue?.id ?? currentValue, form, generateFormRendition);
         break;
       case 'valid':
         if (currentValue === true) {
@@ -420,6 +427,13 @@ function applyRuleEngine(htmlForm, form, captcha) {
     form.getElement(id)?.focus();
   });
 
+  // Wizard Next/Back buttons are pure DOM elements — they don't update the model.
+  // When wizard:navigate bubbles up, focus the target panel in the model so
+  // handleActiveChild fires (lazy render + activeChild sync).
+  htmlForm.addEventListener('wizard:navigate', (e) => {
+    form.getElement(e.detail.currStep.id)?.focus();
+  });
+
   htmlForm.addEventListener('click', async (e) => {
     if (e.target.tagName === 'BUTTON') {
       const element = form.getElement(e.target.id);
@@ -427,6 +441,7 @@ function applyRuleEngine(htmlForm, form, captcha) {
         const token = await captcha.getToken();
         form.getElement(captcha.id).value = token;
       }
+
       if (element) {
         element.dispatch({ type: 'click' });
       }
@@ -484,7 +499,37 @@ export async function loadRuleEngine(formDef, htmlForm, captcha, genFormRenditio
   window.myForm = form;
   formModels[htmlForm.dataset?.id] = form;
   /* eslint-disable no-underscore-dangle */
-  // Pre-render lazy panels that are visible=true in the live model — prevents CLS on restore.
+  // Accordion-only on-demand lazy-render path. Wizard uses the model-driven handleActiveChild
+  // path (Next/Back dispatches wizard:navigate → applyRuleEngine focuses the panel in the
+  // model → fieldChanged(activeChild) → handleActiveChild). Accordion has no model event,
+  // so it calls _renderLazyPanel directly from its click handler.
+  htmlForm._renderLazyPanel = (panelId) => {
+    if (!htmlForm._lazyPanels?.has(panelId)) return;
+    const { fieldData, formId, getItems } = htmlForm._lazyPanels.get(panelId);
+    htmlForm._lazyPanels.delete(panelId);
+    const panelEl = htmlForm.querySelector(`#${panelId}`);
+    if (!panelEl) return;
+    const renderData = getLivePanelState(panelId, htmlForm) || fieldData;
+    const promise = genFormRendition(
+      renderData,
+      panelEl,
+      formId,
+      getItems,
+      { lazyComponents: htmlForm._lazyComponents },
+    );
+    if (fieldData.qualifiedName) {
+      renderPromises[fieldData.qualifiedName] = promise;
+      promise.then(() => { delete renderPromises[fieldData.qualifiedName]; });
+    }
+    promise.then(() => {
+      transferRepeatableDOM(htmlForm, null, htmlForm, formId, panelEl);
+    });
+  };
+  // Background pre-render: fill in remaining step-layout panels after the rule engine
+  // restores state. This runs after the worker round-trip (natural async gap), giving the
+  // browser an opportunity to paint the initial step before this work begins. On-demand
+  // rendering via _renderLazyPanel handles the race where the user navigates before this
+  // completes.
   if (htmlForm._lazyPanels?.size) {
     htmlForm._preRenderPromises = new Map();
     htmlForm._lazyPanels.forEach(({ fieldData, formId, getItems }, id) => {
@@ -501,7 +546,10 @@ export async function loadRuleEngine(formDef, htmlForm, captcha, genFormRenditio
             { lazyComponents: htmlForm._lazyComponents },
           );
           htmlForm._preRenderPromises.set(id, promise);
-          promise.then(() => htmlForm._preRenderPromises?.delete(id));
+          promise.then(() => {
+            htmlForm._preRenderPromises?.delete(id);
+            transferRepeatableDOM(htmlForm, null, htmlForm, formId, panelEl);
+          });
           if (fieldData.qualifiedName) {
             renderPromises[fieldData.qualifiedName] = promise;
             promise.then(() => { delete renderPromises[fieldData.qualifiedName]; });
@@ -518,9 +566,13 @@ export async function loadRuleEngine(formDef, htmlForm, captcha, genFormRenditio
       const panelEl = htmlForm.querySelector(`#${id}`);
       if (!panelEl) return;
       const liveState = getLivePanelState(id, htmlForm);
+      if (!liveState || liveState.visible !== true) {
+        htmlForm._lazyPanels.delete(id);
+        return;
+      }
       htmlForm._lazyPanels.delete(id);
       const promise = genFormRendition(
-        liveState || fieldData,
+        liveState,
         panelEl,
         formId,
         getItems,
@@ -530,6 +582,9 @@ export async function loadRuleEngine(formDef, htmlForm, captcha, genFormRenditio
         renderPromises[fieldData.qualifiedName] = promise;
         promise.then(() => { delete renderPromises[fieldData.qualifiedName]; });
       }
+      promise.then(() => {
+        transferRepeatableDOM(htmlForm, null, htmlForm, formId, panelEl);
+      });
     });
     htmlForm._pendingLazyRenders.clear();
   }
@@ -603,6 +658,15 @@ export async function loadRuleEngine(formDef, htmlForm, captcha, genFormRenditio
       callback(fieldDiv, model, 'register');
     });
   }
+  // Gap 6: restoreFormInstance fires no events (mode: 'restore', queue emptied).
+  // Walk live state to sync data-active for any panel with a restored activeChild.
+  (function syncRestoredActiveChild(state) {
+    if (state.activeChild) {
+      handleActiveChild(state.activeChild, htmlForm, genFormRendition);
+    }
+    state.items?.forEach(syncRestoredActiveChild);
+  }(form.getState(true)));
+
   form.dispatch(new CustomEvent('formViewInitialized'));
 }
 

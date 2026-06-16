@@ -2,7 +2,7 @@ import { createOptimizedPicture, loadCSS } from '../../scripts/aem.js';
 import transferRepeatableDOM, { insertAddButton, insertRemoveButton } from './components/repeat/repeat.js';
 import { emailPattern, getSubmitBaseUrl, SUBMISSION_SERVICE } from './constant.js';
 import GoogleReCaptcha from './integrations/recaptcha.js';
-import componentDecorator, { getCustomComponents } from './mappings.js';
+import componentDecorator, { getCustomComponents, isStepLayoutComponent } from './mappings.js';
 import { handleSubmit } from './submit.js';
 import DocBasedFormToAF from './transform.js';
 import {
@@ -290,8 +290,17 @@ export async function generateFormRendition(
   options = {},
 ) {
   const { lazyPanels, lazyComponents } = options;
-  const activeChildId = panel.activeChild?.id ?? panel.activeChild;
+  const rawActiveChildId = panel.activeChild?.id ?? panel.activeChild;
   const items = getItems(panel) || [];
+  // Step-layout containers (wizard, accordion) show one child at a time via CSS, not via
+  // the model's visible flag. Their activeChild is null until first navigation, so we fall
+  // back to the first item as the effective active child — this causes all non-first child
+  // panels to be deferred to _lazyPanels on initial render.
+  const activeChildId = (rawActiveChildId == null
+    && isStepLayoutComponent(panel[':type'])
+    && items.length > 0)
+    ? items[0].id
+    : rawActiveChildId;
   const promises = items.map(async (field) => {
     field.value = field.value ?? '';
     const { fieldType } = field;
@@ -318,14 +327,16 @@ export async function generateFormRendition(
       //   - Custom components that are themselves visible=false (lazy): already safe — the
       //     lazy render path calls generateFormRendition without lazyPanels, so their children
       //     render eagerly automatically when the component surfaces.
-      //   - OOTB panels (modal, accordion, wizard): fixed in their own component code.
+      //   - Step-layout panels (accordion, wizard): handled via isStepLayoutComponent above.
       const isCustomWithChildPanels = getCustomComponents().includes(field[':type'])
+        && !isStepLayoutComponent(field[':type'])
         && field.items?.some((item) => item.fieldType === 'panel');
       // For custom components with child panels, disable _lazyPanels for their children
       // so nested panels render immediately instead of being deferred.
       const childOptions = isCustomWithChildPanels ? { ...options, lazyPanels: null } : options;
 
-      // Defer non-active wizard panels and initially-hidden panels — render wrapper only.
+      // Defer non-active step-layout child panels and invisible panels — render wrapper only,
+      // children added later when the panel becomes visible/active.
       if (lazyPanels && (
         (activeChildId != null && field.id !== activeChildId)
         || field.visible === false
@@ -336,8 +347,6 @@ export async function generateFormRendition(
       await generateFormRendition(field, element, formId, getItems, childOptions);
       return element;
     }
-    // Defer component JS/CSS for initially-hidden fields — DOM wrapper is still appended so
-    // fieldChanged events can find the element; decorator runs when the field becomes visible.
     if (field.visible === false && lazyComponents && field[':type'] !== 'analytics') {
       lazyComponents.set(field.id, {
         thunk: () => componentDecorator(element, field, container, formId),
@@ -392,26 +401,16 @@ export async function createForm(formDef, data, source = 'aem') {
     form.className = formDef.appliedCssClassNames;
   }
   const formId = extractIdFromUrl(formPath); // formDef.id returns $form after getState()
-  // Lazy rendering is opt-in via formDef.properties.lazyRendering = true. When enabled,
-  // non-active wizard panels and visible=false fields are deferred — wrappers are still
-  // appended (so fieldChanged events can find them) but decorators/children run only when
-  // the field/panel becomes active or visible.
-  const lazyEnabled = formDef?.properties?.lazyRendering === true;
-  const lazyPanels = lazyEnabled ? new Map() : undefined;
-  const lazyComponents = lazyEnabled ? new Map() : undefined;
-  await generateFormRendition(
-    formDef,
-    form,
-    formId,
-    undefined,
-    lazyEnabled ? { lazyPanels, lazyComponents } : {},
-  );
-  if (lazyEnabled) {
-    /* eslint-disable no-underscore-dangle */
-    form._lazyPanels = lazyPanels;
-    form._lazyComponents = lazyComponents;
-    /* eslint-enable no-underscore-dangle */
-  }
+  // Step-layout panels (wizard, accordion) are always deferred — wrappers are appended
+  // immediately so fieldChanged events can find them, but children are rendered only when
+  // the panel becomes active (background pre-render after rule engine init, or on navigation).
+  const lazyPanels = new Map();
+  const lazyComponents = new Map();
+  await generateFormRendition(formDef, form, formId, undefined, { lazyPanels, lazyComponents });
+  /* eslint-disable no-underscore-dangle */
+  form._lazyPanels = lazyPanels;
+  form._lazyComponents = lazyComponents;
+  /* eslint-enable no-underscore-dangle */
 
   let captcha;
   if (captchaField) {

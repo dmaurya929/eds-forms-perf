@@ -304,8 +304,8 @@ export function insertAddButton(wrapper, form, strategy = repeatStrategies.af) {
  * @param {HTMLElement} container - The container element
  * @param {string} formId - The form ID
  */
-export default function transferRepeatableDOM(form, formDef, container, formId) {
-  form.querySelectorAll('[data-repeatable="true"][data-index="0"]').forEach((el) => {
+export default function transferRepeatableDOM(form, formDef, container, formId, root = form) {
+  root.querySelectorAll('[data-repeatable="true"][data-index="0"]').forEach((el) => {
     const instances = getInstances(el);
     const isDocBased = form.dataset.source !== 'aem';
     const strategy = repeatStrategies[isDocBased ? 'doc' : 'af'];

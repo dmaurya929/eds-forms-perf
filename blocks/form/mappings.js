@@ -3,6 +3,10 @@ import { loadCSS } from '../../scripts/aem.js';
 let customComponents = ['range'];
 const OOTBComponentDecorators = ['accordion', 'file', 'modal', 'password', 'rating', 'repeat', 'tnc', 'toggleable-link', 'wizard'];
 
+// Components that show one child panel at a time via CSS (not model visibility).
+// Non-first child panels are deferred on initial render and pre-rendered in background.
+const stepLayoutComponents = ['accordion', 'wizard'];
+
 export function setCustomComponents(components) {
   customComponents = components;
 }
@@ -13,6 +17,17 @@ export function getOOTBComponents() {
 
 export function getCustomComponents() {
   return customComponents;
+}
+
+export function isStepLayoutComponent(type) {
+  return stepLayoutComponents.some((c) => type?.endsWith(c));
+}
+
+// Custom step-layout components (e.g. 'tabs') call this during their setup.
+export function registerStepLayout(type) {
+  if (!stepLayoutComponents.includes(type)) {
+    stepLayoutComponents.push(type);
+  }
 }
 
 /**

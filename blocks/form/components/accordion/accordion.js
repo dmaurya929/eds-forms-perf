@@ -22,6 +22,17 @@ export default function decorate(panel) {
     if (index !== 0) tab.classList.toggle('accordion-collapse'); // collapse all but the first tab on load
     legend?.addEventListener('click', () => {
       handleAccordionNavigation(panel, tab);
+      // Render lazy panel content when the user expands it.
+      /* eslint-disable no-underscore-dangle */
+      const form = panel.closest('form');
+      if (form?._renderLazyPanel) {
+        form._renderLazyPanel(tab.id);
+      } else if (form?._lazyPanels?.has(tab.id)) {
+        // Rule engine not ready yet — queue for loadRuleEngine.
+        form._pendingLazyRenders = form._pendingLazyRenders || new Set();
+        form._pendingLazyRenders.add(tab.id);
+      }
+      /* eslint-enable no-underscore-dangle */
     });
   });
   return panel;

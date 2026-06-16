@@ -182,7 +182,10 @@ function handleActiveChild(id, form, generateFormRendition) {
         renderPromises[fieldData.qualifiedName] = promise;
         promise.then(() => { delete renderPromises[fieldData.qualifiedName]; });
       }
-      promise.then(() => handleActiveChild(id, form, null));
+      promise.then(() => {
+        transferRepeatableDOM(form, null, form, formId, panelEl);
+        handleActiveChild(id, form, null);
+      });
     }
   }
 }
@@ -190,7 +193,7 @@ async function fieldChanged(payload, form, generateFormRendition) {
   const { changes, field: fieldModel } = payload;
   const {
     id, name, fieldType, ':type': componentType, readOnly, type, displayValue, displayFormat, displayValueExpression,
-    activeChild, qualifiedName,
+    qualifiedName,
   } = fieldModel;
   const field = form.querySelector(`#${id}`);
   if (!field) {
@@ -320,6 +323,9 @@ async function fieldChanged(payload, form, generateFormRendition) {
               renderPromises[fieldData.qualifiedName] = promise;
               promise.then(() => { delete renderPromises[fieldData.qualifiedName]; });
             }
+            promise.then(() => {
+              transferRepeatableDOM(form, null, form, storedFormId, field);
+            });
           }
         }
         break;
@@ -396,7 +402,7 @@ async function fieldChanged(payload, form, generateFormRendition) {
           renderPromises[currentValue?.qualifiedName] = promise;
         }
         break;
-      case 'activeChild': handleActiveChild(activeChild, form, generateFormRendition);
+      case 'activeChild': handleActiveChild(currentValue?.id ?? currentValue, form, generateFormRendition);
         break;
       case 'valid':
         if (currentValue === true) {
@@ -473,6 +479,9 @@ function applyRuleEngine$1(htmlForm, form, captcha) {
     }
     form.getElement(id)?.focus();
   });
+  htmlForm.addEventListener('wizard:navigate', (e) => {
+    form.getElement(e.detail.currStep.id)?.focus();
+  });
   htmlForm.addEventListener('click', async (e) => {
     if (e.target.tagName === 'BUTTON') {
       const element = form.getElement(e.target.id);
@@ -527,6 +536,28 @@ async function loadRuleEngine(formDef, htmlForm, captcha, genFormRendition, data
   const form = ruleEngine.restoreFormInstance(formDef, data, { logLevel: LOG_LEVEL });
   window.myForm = form;
   formModels[htmlForm.dataset?.id] = form;
+  htmlForm._renderLazyPanel = (panelId) => {
+    if (!htmlForm._lazyPanels?.has(panelId)) return;
+    const { fieldData, formId, getItems } = htmlForm._lazyPanels.get(panelId);
+    htmlForm._lazyPanels.delete(panelId);
+    const panelEl = htmlForm.querySelector(`#${panelId}`);
+    if (!panelEl) return;
+    const renderData = getLivePanelState(panelId, htmlForm) || fieldData;
+    const promise = genFormRendition(
+      renderData,
+      panelEl,
+      formId,
+      getItems,
+      { lazyComponents: htmlForm._lazyComponents },
+    );
+    if (fieldData.qualifiedName) {
+      renderPromises[fieldData.qualifiedName] = promise;
+      promise.then(() => { delete renderPromises[fieldData.qualifiedName]; });
+    }
+    promise.then(() => {
+      transferRepeatableDOM(htmlForm, null, htmlForm, formId, panelEl);
+    });
+  };
   if (htmlForm._lazyPanels?.size) {
     htmlForm._preRenderPromises = new Map();
     htmlForm._lazyPanels.forEach(({ fieldData, formId, getItems }, id) => {
@@ -543,7 +574,10 @@ async function loadRuleEngine(formDef, htmlForm, captcha, genFormRendition, data
             { lazyComponents: htmlForm._lazyComponents },
           );
           htmlForm._preRenderPromises.set(id, promise);
-          promise.then(() => htmlForm._preRenderPromises?.delete(id));
+          promise.then(() => {
+            htmlForm._preRenderPromises?.delete(id);
+            transferRepeatableDOM(htmlForm, null, htmlForm, formId, panelEl);
+          });
           if (fieldData.qualifiedName) {
             renderPromises[fieldData.qualifiedName] = promise;
             promise.then(() => { delete renderPromises[fieldData.qualifiedName]; });
@@ -559,9 +593,13 @@ async function loadRuleEngine(formDef, htmlForm, captcha, genFormRendition, data
       const panelEl = htmlForm.querySelector(`#${id}`);
       if (!panelEl) return;
       const liveState = getLivePanelState(id, htmlForm);
+      if (!liveState || liveState.visible !== true) {
+        htmlForm._lazyPanels.delete(id);
+        return;
+      }
       htmlForm._lazyPanels.delete(id);
       const promise = genFormRendition(
-        liveState || fieldData,
+        liveState,
         panelEl,
         formId,
         getItems,
@@ -571,6 +609,9 @@ async function loadRuleEngine(formDef, htmlForm, captcha, genFormRendition, data
         renderPromises[fieldData.qualifiedName] = promise;
         promise.then(() => { delete renderPromises[fieldData.qualifiedName]; });
       }
+      promise.then(() => {
+        transferRepeatableDOM(htmlForm, null, htmlForm, formId, panelEl);
+      });
     });
     htmlForm._pendingLazyRenders.clear();
   }
@@ -641,6 +682,12 @@ async function loadRuleEngine(formDef, htmlForm, captcha, genFormRendition, data
       callback(fieldDiv, model, 'register');
     });
   }
+  (function syncRestoredActiveChild(state) {
+    if (state.activeChild) {
+      handleActiveChild(state.activeChild, htmlForm, genFormRendition);
+    }
+    state.items?.forEach(syncRestoredActiveChild);
+  }(form.getState(true)));
   form.dispatch(new CustomEvent('formViewInitialized'));
 }
 async function initializeRuleEngineWorker(formDef, renderHTMLForm) {
@@ -927,8 +974,8 @@ function insertAddButton(wrapper, form, strategy = repeatStrategies.af) {
   actions.appendChild(addButton);
   wrapper.append(actions);
 }
-function transferRepeatableDOM(form, formDef, container, formId) {
-  form.querySelectorAll('[data-repeatable="true"][data-index="0"]').forEach((el) => {
+function transferRepeatableDOM(form, formDef, container, formId, root = form) {
+  root.querySelectorAll('[data-repeatable="true"][data-index="0"]').forEach((el) => {
     const instances = getInstances(el);
     const isDocBased = form.dataset.source !== 'aem';
     const strategy = repeatStrategies[isDocBased ? 'doc' : 'af'];
@@ -1054,11 +1101,15 @@ class GoogleReCaptcha {
 
 let customComponents = ['range'];
 const OOTBComponentDecorators = ['accordion', 'file', 'modal', 'password', 'rating', 'repeat', 'tnc', 'toggleable-link', 'wizard'];
+const stepLayoutComponents = ['accordion', 'wizard'];
 function getOOTBComponents() {
   return OOTBComponentDecorators;
 }
 function getCustomComponents() {
   return customComponents;
+}
+function isStepLayoutComponent(type) {
+  return stepLayoutComponents.some((c) => type?.endsWith(c));
 }
 async function loadComponent(componentName, element, fd, container, formId) {
   const status = element.dataset.componentStatus;
@@ -1612,8 +1663,13 @@ async function generateFormRendition(
   options = {},
 ) {
   const { lazyPanels, lazyComponents } = options;
-  const activeChildId = panel.activeChild?.id ?? panel.activeChild;
+  const rawActiveChildId = panel.activeChild?.id ?? panel.activeChild;
   const items = getItems(panel) || [];
+  const activeChildId = (rawActiveChildId == null
+    && isStepLayoutComponent(panel[':type'])
+    && items.length > 0)
+    ? items[0].id
+    : rawActiveChildId;
   const promises = items.map(async (field) => {
     field.value = field.value ?? '';
     const { fieldType } = field;
@@ -1630,6 +1686,7 @@ async function generateFormRendition(
     colSpanDecorator(field, element);
     if (field?.fieldType === 'panel') {
       const isCustomWithChildPanels = getCustomComponents().includes(field[':type'])
+        && !isStepLayoutComponent(field[':type'])
         && field.items?.some((item) => item.fieldType === 'panel');
       const childOptions = isCustomWithChildPanels ? { ...options, lazyPanels: null } : options;
       if (lazyPanels && (
@@ -1690,20 +1747,11 @@ async function createForm(formDef, data, source = 'aem') {
     form.className = formDef.appliedCssClassNames;
   }
   const formId = extractIdFromUrl(formPath);
-  const lazyEnabled = formDef?.properties?.lazyRendering === true;
-  const lazyPanels = lazyEnabled ? new Map() : undefined;
-  const lazyComponents = lazyEnabled ? new Map() : undefined;
-  await generateFormRendition(
-    formDef,
-    form,
-    formId,
-    undefined,
-    lazyEnabled ? { lazyPanels, lazyComponents } : {},
-  );
-  if (lazyEnabled) {
-    form._lazyPanels = lazyPanels;
-    form._lazyComponents = lazyComponents;
-  }
+  const lazyPanels = new Map();
+  const lazyComponents = new Map();
+  await generateFormRendition(formDef, form, formId, undefined, { lazyPanels, lazyComponents });
+  form._lazyPanels = lazyPanels;
+  form._lazyComponents = lazyComponents;
   let captcha;
   if (captchaField) {
     let config = captchaField?.properties?.['fd:captcha']?.config;

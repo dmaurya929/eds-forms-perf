@@ -79,7 +79,7 @@ export class WizardLayout {
           prevStep: { id: current.id, index: +current.dataset.index },
           currStep: { id: navigateTo.id, index: +navigateTo.dataset.index },
         },
-        bubbles: false,
+        bubbles: true,
       });
       panel.dispatchEvent(event);
     }
